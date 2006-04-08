@@ -1,4 +1,9 @@
 Revision history for Catalyst::Log::Log4perl 
 
+0.2		2006-02-10 00:55:10 +0100
+		- Resync with Catalyst::Log, by supporting abort(1)
+		- Refactor to closures
+		- added autoflush option to new() to disable abort-support
+
 0.01    Wed Sep 21 16:25:37 PDT 2005
         - Initial Release

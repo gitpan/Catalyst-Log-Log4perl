@@ -9,10 +9,19 @@ Catalyst::Log::Log4perl - Log::Log4perl logging for Catalyst
 In MyApp.pm:
 
     use Catalyst::Log::Log4perl;
-    MyApp->log(
-        Catalyst::Log:Log4perl->new("log4perl.conf")
-    );
 
+	# then we create a custom logger object for catalyst to use.
+	# If we dont supply any arguments to new, it will work almost
+	# like the default catalyst-logger.
+	
+    __PACKAGE__->log(Catalyst::Log:Log4perl->new());
+
+	# But the real power of Log4perl lies in the configuration, so
+	# lets try that. example.conf is included in the distribution,
+	# alongside the README and Changes.
+	
+	__PACKAGE__->log(Catalyst::Log:Log4perl->new('example.conf'));
+	
 And later...
 
     $c->log->debug("This is using log4perl!");
@@ -59,32 +68,74 @@ use Log::Log4perl::Layout;
 use Log::Log4perl::Level;
 use Params::Validate;
 
-our $VERSION = '0.1';
+our $VERSION = '0.2';
 
-=item new($config)
+{
+    my @levels = qw[ debug info warn error fatal ];
+
+    for (my $i = 0; $i < @levels; $i++) {
+
+        my $name  = $levels[$i];
+        my $level = 1 << $i;
+
+        no strict 'refs';
+        *{$name} = sub {
+            my ($self, @message) = @_;
+            my ($package, $filename, $line) = caller;
+            my $depth = $Log::Log4perl::caller_depth;
+            unless ($depth > 0) {
+                $depth = 1;
+            }
+            $self->_log([ $package, $name, $depth, \@message ]);
+            return 1;
+        };
+
+        *{"is_$name"} = sub {
+            my ($self, @message) = @_;
+            my ($package, $filename, $line) = caller;
+            my $logger = Log::Log4perl->get_logger($package);
+            my $func   = "is_" . $name;
+            return $logger->$func;
+        };
+    }
+}
+
+sub _log {
+    my $self = shift;
+    push @{ $self->{log4perl_stack} }, @_;
+}
+
+=item new($config, [%options])
 
 This builds a new L<Catalyst::Log::Log4perl> object.  If you provide an argument
 to new(), it will be passed directly to Log::Log4perl::init.  
+
+The second (optional) parameter is an hash, with extra options. Currently 
+only one additional parameter is defined, and that is 'autoflush'. Set it to 
+a true value to disable abort(1) support.
 
 Without any arguments, it will initialize a root logger with a single appender,
 L<Log::Log4perl::Appender::Screen>, configured to have an identical layout to
 the default L<Catalyst::Log> object.
 
 =cut
+
 sub new {
-    my $self = shift;
-    my $config = shift;
+    my $self    = shift;
+    my $config  = shift;
+    my %options = @_;
+
     my %foo;
     my $ref = \%foo;
     unless (Log::Log4perl->initialized) {
         if (defined($config)) {
             Log::Log4perl::init($config);
         } else {
-            my $log = Log::Log4perl->get_logger("");
-            my $layout = Log::Log4perl::Layout::PatternLayout->new("[%d] [catalyst] [%p] %m%n");
+            my $log      = Log::Log4perl->get_logger("");
+            my $layout   = Log::Log4perl::Layout::PatternLayout->new("[%d] [catalyst] [%p] %m%n");
             my $appender = Log::Log4perl::Appender->new(
                 "Log::Log4perl::Appender::Screen",
-                'name' => 'screenlog',
+                'name'   => 'screenlog',
                 'stderr' => 1,
             );
             $appender->layout($layout);
@@ -92,159 +143,93 @@ sub new {
             $log->level($DEBUG);
         }
     }
+
+    $ref->{autoflush} = $options{autoflush} || 0;
+
+    $ref->{abort}          = 0;
+    $ref->{log4perl_stack} = [];
+
     bless $ref, $self;
     return $ref;
+}
+
+=item _flush()
+
+Flushes the cache. Much like the way Catalyst::Log does it.
+
+=cut
+
+sub _flush {
+    my ($self) = @_;
+
+    my @stack = @{ $self->{log4perl_stack} };
+    $self->{log4perl_stack} = [];
+    if (!$self->{autoflush} and $self->{abort}) {
+        $self->{abort} = 0;
+        return 0;
+    }
+
+    foreach my $logmsg (@stack) {
+        my ($package, $type, $depth, $message) = @$logmsg;
+        local $Log::Log4perl::caller_depth = $depth;
+        my $logger = Log::Log4perl->get_logger($package);
+        $logger->$type(@$message);
+    }
+}
+
+=item abort($abort)
+
+Causes the current log-object to not log anything, effectivly shutting
+up this request, making it disapear from the logs.
+
+=cut
+
+sub abort {
+    my $self  = shift;
+    my $abort = shift;
+    $self->{abort} = $abort;
+    return $self->{abort};
 }
 
 =item debug($message)
 
 Passes it's arguments to $logger->debug.
 
-=cut
-sub debug {
-    my ($self, @message) = @_;
-    my ($package, $filename, $line) = caller;
-    my $depth = $Log::Log4perl::caller_depth;
-    unless ($depth > 0) {
-        $depth = 1;
-    }
-    local $Log::Log4perl::caller_depth = $depth;
-    my $logger = Log::Log4perl->get_logger($package);
-    $logger->debug(@message);
-    return 1;
-}
-
 =item info($message)
 
 Passes it's arguments to $logger->info.
-
-=cut
-sub info {
-    my ($self, @message)  = @_;
-    my ($package, $filename, $line) = caller;
-    my $depth = $Log::Log4perl::caller_depth;
-    unless ($depth > 0) {
-        $depth = 1;
-    }
-    local $Log::Log4perl::caller_depth = $depth;
-    my $logger = Log::Log4perl->get_logger($package);
-    $logger->info(@message);
-    return 1;
-}
 
 =item warn($message)
 
 Passes it's arguments to $logger->warn.
 
-=cut
-sub warn {
-    my ($self, @message)  = @_;
-    my ($package, $filename, $line) = caller;
-    my $depth = $Log::Log4perl::caller_depth;
-    unless ($depth > 0) {
-        $depth = 1;
-    }
-    local $Log::Log4perl::caller_depth = $depth;
-    my $logger = Log::Log4perl->get_logger($package);
-    $logger->warn(@message);
-    return 1;
-}
-
 =item error($message)
 
 Passes it's arguments to $logger->error.
-
-=cut
-sub error {
-    my ($self, @message)  = @_;
-    my ($package, $filename, $line) = caller;
-    my $depth = $Log::Log4perl::caller_depth;
-    unless ($depth > 0) {
-        $depth = 1;
-    }
-    local $Log::Log4perl::caller_depth = $depth;
-    my $logger = Log::Log4perl->get_logger($package);
-    $logger->error(@message);
-    return 1;
-}
 
 =item fatal($message)
 
 Passes it's arguments to $logger->fatal.
 
-=cut
-sub fatal {
-    my ($self, @message)  = @_;
-    my ($package, $filename, $line) = caller;
-    my $depth = $Log::Log4perl::caller_depth;
-    unless ($depth > 0) {
-        $depth = 1;
-    }
-    local $Log::Log4perl::caller_depth = $depth;
-    my $logger = Log::Log4perl->get_logger($package);
-    $logger->fatal(@message);
-    return 1;
-}
-
 =item is_debug()
 
 Calls $logger->is_debug.
-
-=cut
-sub is_debug {
-    my ($self, @message)  = @_;
-    my ($package, $filename, $line) = caller;
-    my $logger = Log::Log4perl->get_logger($package);
-    return $logger->is_debug;
-}
 
 =item is_info()
 
 Calls $logger->is_info.
 
-=cut
-sub is_info {
-    my ($self, @message)  = @_;
-    my ($package, $filename, $line) = caller;
-    my $logger = Log::Log4perl->get_logger($package);
-    return $logger->is_info;
-}
-
 =item is_warn()
 
 Calls $logger->is_warn.
-
-=cut
-sub is_warn {
-    my ($self, @message)  = @_;
-    my ($package, $filename, $line) = caller;
-    my $logger = Log::Log4perl->get_logger($package);
-    return $logger->is_warn;
-}
 
 =item is_error()
 
 Calls $logger->is_error.
 
-=cut
-sub is_error {
-    my ($self, @message)  = @_;
-    my ($package, $filename, $line) = caller;
-    my $logger = Log::Log4perl->get_logger($package);
-    return $logger->is_error;
-}
-
 =item is_fatal()
 
 Calls $logger->is_fatal.
-
-=cut
-sub is_fatal {
-    my ($self, @message)  = @_;
-    my ($package, $filename, $line) = caller;
-    my $logger = Log::Log4perl->get_logger($package);
-    return $logger->is_fatal;
-}
 
 =item levels()
 
@@ -252,6 +237,7 @@ This method does nothing but return "0".  You should use L<Log::Log4perl>'s
 built in mechanisms for setting up log levels.
 
 =cut
+
 sub levels {
     return 0;
 }
@@ -262,6 +248,7 @@ This method does nothing but return "0".  You should use L<Log::Log4perl>'s
 built in mechanisms for enabling log levels.
 
 =cut
+
 sub enable {
     return 0;
 }
@@ -272,6 +259,7 @@ This method does nothing but return "0".  You should use L<Log::Log4perl>'s
 built in mechanisms for disabling log levels.
 
 =cut
+
 sub disable {
     return 0;
 }
@@ -279,6 +267,7 @@ sub disable {
 1;
 
 __END__
+
 =back
 
 =head1 SEE ALSO
@@ -288,6 +277,7 @@ L<Log::Log4perl>, L<Catalyst::Log>, L<Catalyst>.
 =head1 AUTHOR
 
 Adam Jacob, C<adam@stalecoffee.org>
+Andreas Marienborg, C<omega@palle.net>
 
 =head1 LICENSE
 
