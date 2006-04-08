@@ -68,7 +68,7 @@ use Log::Log4perl::Layout;
 use Log::Log4perl::Level;
 use Params::Validate;
 
-our $VERSION = '0.2';
+our $VERSION = '0.3';
 
 {
     my @levels = qw[ debug info warn error fatal ];
@@ -110,11 +110,13 @@ sub _log {
 This builds a new L<Catalyst::Log::Log4perl> object.  If you provide an argument
 to new(), it will be passed directly to Log::Log4perl::init.  
 
-The second (optional) parameter is an hash, with extra options. Currently 
-only one additional parameter is defined, and that is 'autoflush'. Set it to 
-a true value to disable abort(1) support.
+The second (optional) parameter is a hash with extra options. Currently 
+only two additional parameters are defined:
 
-Without any arguments, it will initialize a root logger with a single appender,
+  'autoflush'   - Set it to a true value to disable abort(1) support.
+  'watch_delay' - Set it to a true value to use L<Log::Log4perl>'s init_and_watch
+
+Without any arguments, new() will initialize a root logger with a single appender,
 L<Log::Log4perl::Appender::Screen>, configured to have an identical layout to
 the default L<Catalyst::Log> object.
 
@@ -127,9 +129,20 @@ sub new {
 
     my %foo;
     my $ref = \%foo;
+
+    my $watch_delay = 0;
+    if (exists($options{'watch_delay'})) {
+        if ($options{'watch_delay'}) {
+            $watch_delay = $options{'watch_delay'};
+        }
+    }
     unless (Log::Log4perl->initialized) {
         if (defined($config)) {
-            Log::Log4perl::init($config);
+            if ($watch_delay) {
+                Log::Log4perl::init_and_watch($config, $watch_delay);
+            } else {
+                Log::Log4perl::init($config);
+            }
         } else {
             my $log      = Log::Log4perl->get_logger("");
             my $layout   = Log::Log4perl::Layout::PatternLayout->new("[%d] [catalyst] [%p] %m%n");
