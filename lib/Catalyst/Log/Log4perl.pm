@@ -14,13 +14,13 @@ In MyApp.pm:
 	# If we dont supply any arguments to new, it will work almost
 	# like the default catalyst-logger.
 	
-    __PACKAGE__->log(Catalyst::Log:Log4perl->new());
+    __PACKAGE__->log(Catalyst::Log::Log4perl->new());
 
 	# But the real power of Log4perl lies in the configuration, so
 	# lets try that. example.conf is included in the distribution,
 	# alongside the README and Changes.
 	
-	__PACKAGE__->log(Catalyst::Log:Log4perl->new('example.conf'));
+	__PACKAGE__->log(Catalyst::Log::Log4perl->new('example.conf'));
 	
 And later...
 
@@ -68,7 +68,7 @@ use Log::Log4perl::Layout;
 use Log::Log4perl::Level;
 use Params::Validate;
 
-our $VERSION = '0.3';
+our $VERSION = '0.4';
 
 {
     my @levels = qw[ debug info warn error fatal ];
@@ -291,6 +291,7 @@ L<Log::Log4perl>, L<Catalyst::Log>, L<Catalyst>.
 
 Adam Jacob, C<adam@stalecoffee.org>
 Andreas Marienborg, C<omega@palle.net>
+Gavin Henry, C<ghenry@suretecsystems.com> (Typos)
 
 =head1 LICENSE
 
