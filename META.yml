@@ -1,13 +1,15 @@
-# http://module-build.sourceforge.net/META-spec.html
-#XXXXXXX This is a prototype!!!  It will change in the future!!! XXXXX#
-name:         Catalyst-Log-Log4perl
-version:      0.4
-version_from: lib/Catalyst/Log/Log4perl.pm
-installdirs:  site
-requires:
-    Catalyst:                      5.60
-    Log::Log4perl:                 0
-    Params::Validate:              0
-
+abstract: Log::Log4perl logging for Catalyst
+author: Adam Jacob, C<adam@stalecoffee.org>
 distribution_type: module
-generated_by: ExtUtils::MakeMaker version 6.17
+generated_by: Module::Install version 0.64
+license: perl
+name: Catalyst-Log-Log4perl
+no_index: 
+  directory: 
+    - inc
+    - t
+requires: 
+  Catalyst: 5.60
+  Params::Validate: 0
+  Sub::Install: 0
+version: 0.50

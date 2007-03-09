@@ -1,12 +1,12 @@
-use ExtUtils::MakeMaker;
+use inc::Module::Install;
 
-WriteMakefile(
-    NAME      => 'Catalyst::Log::Log4perl',
-    AUTHOR    => 'Adam Jacob (adam@stalecoffee.org)',
-    PREREQ_PM => {
-        Catalyst           => '5.60',
-        'Log::Log4perl' => 0,
-				'Params::Validate' => 0,
-    },
-    VERSION_FROM => 'lib/Catalyst/Log/Log4perl.pm'
-);
+name 'Catalyst-Log-Log4perl';
+all_from 'lib/Catalyst/Log/Log4perl.pm';
+requires( 'Catalyst'         => '5.60' );
+requires( 'Params::Validate' => 0 );
+requires( 'Sub::Install'     => 0 );
+
+auto_include;
+auto_install;
+
+WriteAll

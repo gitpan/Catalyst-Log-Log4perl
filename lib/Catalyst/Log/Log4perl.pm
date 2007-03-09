@@ -10,18 +10,18 @@ In MyApp.pm:
 
     use Catalyst::Log::Log4perl;
 
-	# then we create a custom logger object for catalyst to use.
-	# If we dont supply any arguments to new, it will work almost
-	# like the default catalyst-logger.
-	
+  # then we create a custom logger object for catalyst to use.
+  # If we dont supply any arguments to new, it will work almost
+  # like the default catalyst-logger.
+  
     __PACKAGE__->log(Catalyst::Log::Log4perl->new());
 
-	# But the real power of Log4perl lies in the configuration, so
-	# lets try that. example.conf is included in the distribution,
-	# alongside the README and Changes.
-	
-	__PACKAGE__->log(Catalyst::Log::Log4perl->new('example.conf'));
-	
+  # But the real power of Log4perl lies in the configuration, so
+  # lets try that. example.conf is included in the distribution,
+  # alongside the README and Changes.
+  
+  __PACKAGE__->log(Catalyst::Log::Log4perl->new('example.conf'));
+  
 And later...
 
     $c->log->debug("This is using log4perl!");
@@ -68,31 +68,42 @@ use Log::Log4perl::Layout;
 use Log::Log4perl::Level;
 use Params::Validate;
 
-our $VERSION = '0.4';
+our $VERSION = '0.50';
 
 {
     my @levels = qw[ debug info warn error fatal ];
 
-    for (my $i = 0; $i < @levels; $i++) {
+    for ( my $i = 0; $i < @levels; $i++ ) {
 
         my $name  = $levels[$i];
         my $level = 1 << $i;
 
         no strict 'refs';
         *{$name} = sub {
-            my ($self, @message) = @_;
-            my ($package, $filename, $line) = caller;
+            my ( $self, @message ) = @_;
+            my ( $package, $filename, $line ) = caller;
             my $depth = $Log::Log4perl::caller_depth;
-            unless ($depth > 0) {
+            unless ( $depth > 0 ) {
                 $depth = 1;
             }
-            $self->_log([ $package, $name, $depth, \@message ]);
+            my @info = ( $package, $name, $depth, \@message );
+            if ( $self->{override_cspecs} ) {
+                my %caller;
+                @caller{qw/package filename line/} = caller;
+
+                # I really have no idea why the correct subroutine
+                # is on a different call stack
+                $caller{subroutine} = ( caller(1) )[3];    #wtf?
+
+                push @info, \%caller;
+            }
+            $self->_log( \@info );
             return 1;
         };
 
         *{"is_$name"} = sub {
-            my ($self, @message) = @_;
-            my ($package, $filename, $line) = caller;
+            my ( $self, @message ) = @_;
+            my ( $package, $filename, $line ) = caller;
             my $logger = Log::Log4perl->get_logger($package);
             my $func   = "is_" . $name;
             return $logger->$func;
@@ -111,10 +122,14 @@ This builds a new L<Catalyst::Log::Log4perl> object.  If you provide an argument
 to new(), it will be passed directly to Log::Log4perl::init.  
 
 The second (optional) parameter is a hash with extra options. Currently 
-only two additional parameters are defined:
+three additional parameters are defined:
 
   'autoflush'   - Set it to a true value to disable abort(1) support.
   'watch_delay' - Set it to a true value to use L<Log::Log4perl>'s init_and_watch
+
+  'override_cspecs' - EXPERIMENTAL
+      Set it to a true value to locally override some parts of
+      L<Log::Log4perl::Layout::PatternLayout>. See L<OVERRIDING CSPECS> below
 
 Without any arguments, new() will initialize a root logger with a single appender,
 L<Log::Log4perl::Appender::Screen>, configured to have an identical layout to
@@ -131,21 +146,23 @@ sub new {
     my $ref = \%foo;
 
     my $watch_delay = 0;
-    if (exists($options{'watch_delay'})) {
-        if ($options{'watch_delay'}) {
+    if ( exists( $options{'watch_delay'} ) ) {
+        if ( $options{'watch_delay'} ) {
             $watch_delay = $options{'watch_delay'};
         }
     }
-    unless (Log::Log4perl->initialized) {
-        if (defined($config)) {
+    unless ( Log::Log4perl->initialized ) {
+        if ( defined($config) ) {
             if ($watch_delay) {
-                Log::Log4perl::init_and_watch($config, $watch_delay);
+                Log::Log4perl::init_and_watch( $config, $watch_delay );
             } else {
                 Log::Log4perl::init($config);
             }
         } else {
-            my $log      = Log::Log4perl->get_logger("");
-            my $layout   = Log::Log4perl::Layout::PatternLayout->new("[%d] [catalyst] [%p] %m%n");
+            my $log = Log::Log4perl->get_logger("");
+            my $layout =
+              Log::Log4perl::Layout::PatternLayout->new(
+                "[%d] [catalyst] [%p] %m%n");
             my $appender = Log::Log4perl::Appender->new(
                 "Log::Log4perl::Appender::Screen",
                 'name'   => 'screenlog',
@@ -159,10 +176,26 @@ sub new {
 
     $ref->{autoflush} = $options{autoflush} || 0;
 
+    $ref->{override_cspecs} = $options{override_cspecs} || 0;
+
+    if ( $ref->{override_cspecs} ) {
+        @{ $ref->{local_cspecs} }{qw/L F C M l/} = (
+            sub { $ref->{context}->{line} },
+            sub { $ref->{context}->{filename} },
+            sub { $ref->{context}->{package} },
+            sub { $ref->{context}->{subroutine} },
+            sub {
+                sprintf '%s %s (%d)',
+                  @{ $ref->{context} }{qw/subroutine filename line/};
+            }
+        );
+    }
+
     $ref->{abort}          = 0;
     $ref->{log4perl_stack} = [];
 
     bless $ref, $self;
+
     return $ref;
 }
 
@@ -177,14 +210,42 @@ sub _flush {
 
     my @stack = @{ $self->{log4perl_stack} };
     $self->{log4perl_stack} = [];
-    if (!$self->{autoflush} and $self->{abort}) {
+    if ( !$self->{autoflush} and $self->{abort} ) {
         $self->{abort} = 0;
         return 0;
     }
 
     foreach my $logmsg (@stack) {
-        my ($package, $type, $depth, $message) = @$logmsg;
+        my ( $package, $type, $depth, $message ) = @{$logmsg}[ 0 .. 3 ];
+        $self->{context} = $logmsg->[-1] if $self->{override_cspecs};
+
+        # fetch all instances of pattern layouts
+        my @patterns;
+        if ( $self->{override_cspecs} ) {
+            @patterns =
+              grep { $_->isa('Log::Log4perl::Layout::PatternLayout') }
+              map  { $_->layout } values %{ Log::Log4perl->appenders() };
+        }
+
+        # localize the cspecs so we don't disturb modules that
+        # directly operate on Log4perl
+        local $_->{USER_DEFINED_CSPECS} for @patterns;
+
+        for my $layout (@patterns) {
+            while ( my ( $cspec, $subref ) = each %{ $self->{local_cspecs} } )
+            {
+
+                # overriding USER_DEFINED_CSPECS relies on an missing internal
+                # check in Log4perl: cspecs that collide with a predefined one
+                # can't be added via the API but are executed nonetheless
+                # and override the originals. This behaviour is only verified
+                # with version 1.08 of Log::Log4perl
+                $layout->{USER_DEFINED_CSPECS}->{$cspec} = $subref;
+            }
+        }
+
         local $Log::Log4perl::caller_depth = $depth;
+
         my $logger = Log::Log4perl->get_logger($package);
         $logger->$type(@$message);
     }
@@ -283,6 +344,25 @@ __END__
 
 =back
 
+=head1 OVERRIDING CSPECS
+
+Due to some fundamental design incompatibilities of L<Log::Log4perl>
+and L<Catalyst::Log> all cspecs of L<Log::Log4perl::Layout::PatternLayout>
+that rely on call stack information fail to work as expected. Affected
+are the format strings %L, %F, %C, %M, %l and %T. You can instruct
+B<Catalyst::Log::Log4perl> to try to hijack these patterns which seems to
+work reasonable well, but be adviced that this feature is HIGHLY EXPERIMENTAL
+and relies on a few internals of L<Log::Log4perl> that might change in later
+versions of this library. Additionally, this feature is currently only tested
+with L<Log::Log4perl> version 1.08 allthough the underlying internals of
+L<Log::Log4perl> seem to be stable since at least version 0.47.
+
+=head1 BUGS AND LIMITATIONS
+
+The %T cspec of L<Log::Log4perl::Layout::PatternLayout> is currently
+unimplemented. The implementation to get %M defies any logical approach
+but seems to work perfectly.
+
 =head1 SEE ALSO
 
 L<Log::Log4perl>, L<Catalyst::Log>, L<Catalyst>.
@@ -292,6 +372,7 @@ L<Log::Log4perl>, L<Catalyst::Log>, L<Catalyst>.
 Adam Jacob, C<adam@stalecoffee.org>
 Andreas Marienborg, C<omega@palle.net>
 Gavin Henry, C<ghenry@suretecsystems.com> (Typos)
+Sebastian Willert (Overriding CSPECS)
 
 =head1 LICENSE
 
