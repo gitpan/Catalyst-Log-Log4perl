@@ -1,6 +1,8 @@
 Revision history for Catalyst::Log::Log4perl 
-
-0.5 Fri Mar  9 11:50:49 PST 2007
+0.51 Sat Mar 10 11:27:39 PST 2007
+  - Put in a dependency for Log::Log4perl.  (thanks, lbr!) That was dumb!
+  
+0.50 Fri Mar  9 11:50:49 PST 2007
   - Added support for more Log::Log4perl cspecs.  Sebastian Willert provided
     the code for this, and it was graciously tested by jshirley.  It's use
     should still be considered experimental, as it requires mucking about 

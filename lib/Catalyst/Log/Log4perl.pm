@@ -68,7 +68,7 @@ use Log::Log4perl::Layout;
 use Log::Log4perl::Level;
 use Params::Validate;
 
-our $VERSION = '0.50';
+our $VERSION = '0.51';
 
 {
     my @levels = qw[ debug info warn error fatal ];
