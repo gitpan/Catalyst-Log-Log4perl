@@ -1,4 +1,9 @@
 Revision history for Catalyst::Log::Log4perl 
+1.00 Wed May 30 11:31:58 PDT 2007
+  - Added _dump support. (Thanks, jshirley)
+  - Bumped to 1.00, as there don't seem to be any outstanding bugs, and
+    the experimental stuff likely will remain that way.
+
 0.51 Sat Mar 10 11:27:39 PST 2007
   - Put in a dependency for Log::Log4perl.  (thanks, lbr!) That was dumb!
   

@@ -67,8 +67,9 @@ use Log::Log4perl;
 use Log::Log4perl::Layout;
 use Log::Log4perl::Level;
 use Params::Validate;
+use Data::Dump;
 
-our $VERSION = '0.51';
+our $VERSION = '1.00';
 
 {
     my @levels = qw[ debug info warn error fatal ];
@@ -114,6 +115,11 @@ our $VERSION = '0.51';
 sub _log {
     my $self = shift;
     push @{ $self->{log4perl_stack} }, @_;
+}
+
+sub _dump {
+    my $self = shift;
+    $self->debug( Data::Dump::dump(@_) );
 }
 
 =item new($config, [%options])
@@ -373,6 +379,7 @@ Adam Jacob, C<adam@stalecoffee.org>
 Andreas Marienborg, C<omega@palle.net>
 Gavin Henry, C<ghenry@suretecsystems.com> (Typos)
 Sebastian Willert (Overriding CSPECS)
+J. Shirley C<jshirley@gmail.com> (Adding _dump)
 
 =head1 LICENSE
 

@@ -1,8 +1,12 @@
+--- 
 abstract: Log::Log4perl logging for Catalyst
 author: Adam Jacob, C<adam@stalecoffee.org>
 distribution_type: module
-generated_by: Module::Install version 0.64
+generated_by: Module::Install version 0.65
 license: perl
+meta-spec: 
+  url: http://module-build.sourceforge.net/META-spec-v1.3.html
+  version: 1.3
 name: Catalyst-Log-Log4perl
 no_index: 
   directory: 
@@ -10,7 +14,8 @@ no_index:
     - t
 requires: 
   Catalyst: 5.60
+  Data::Dump: 0
   Log::Log4perl: 0.49
   Params::Validate: 0
   Sub::Install: 0
-version: 0.51
+version: 1.00
