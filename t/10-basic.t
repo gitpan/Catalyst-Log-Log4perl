@@ -3,22 +3,15 @@
 use strict;
 use warnings;
 
-use Test::More tests => 14;
 use FindBin;
 
 use lib ( "$FindBin::Bin/lib", "$FindBin::Bin/../lib" );
 
-BEGIN {
-    use_ok "Catalyst::Log::Log4perl";
-    use_ok "MockApp";
-}
 
-MockApp->setup;
+use Catalyst::Test 'MockApp';
 
-my $app = MockApp->new();
-my $c   = undef;
+use Test::More tests => 11;
 
-isa_ok( $app, 'MockApp' );
 
 # fetch the single appender so we can access log messages
 my ($appender) = values %{ Log::Log4perl->appenders };
@@ -37,13 +30,13 @@ sub log_like($;$) {
 }
 
 ## test capturing of log messages
-
-$c = $app->GET('/foo');
-is( $c->response->body, 'foo', 'Foo response body' );
+my $c;
+$c = get('/foo');
+is( $c, 'foo', 'Foo response body' );
 log_ok( '[MockApp.Controller.Root] root/foo', 'Foo log message' );
 
-$c = $app->GET( '/bar', 'say=hello' );
-is( $c->response->body, 'hello', 'Bar response body' );
+$c = get( '/bar?say=hello' );
+is( $c, 'hello', 'Bar response body' );
 log_ok( '[MockApp.Controller.Root] root/bar', 'Bar log message' );
 
 ## test different cseps
@@ -51,17 +44,17 @@ log_ok( '[MockApp.Controller.Root] root/bar', 'Bar log message' );
 # %F File where the logging event occurred
 
 $appender->layout( Log::Log4perl::Layout::PatternLayout->new('%F') );
-$c = $app->GET('/foo');
+$c = get('/foo');
 log_like( qr|lib/MockApp/Controller/Root.pm$|, 'Loggin filepath' );
 
 $appender->layout( Log::Log4perl::Layout::PatternLayout->new('%L') );
-$c = $app->GET('/foo');
-log_ok( '18', 'Loggin line number' );
+$c = get('/foo');
+log_ok( '16', 'Loggin line number' );
 
 # %C Fully qualified package (or class) name of the caller
 
 $appender->layout( Log::Log4perl::Layout::PatternLayout->new('%C') );
-$c = $app->GET('/foo');
+$c = get('/foo');
 log_ok( 'MockApp::Controller::Root', 'Loggin class name' );
 
 # %l Fully qualified name of the calling method followed by the
@@ -69,15 +62,15 @@ log_ok( 'MockApp::Controller::Root', 'Loggin class name' );
 #    parentheses.
 
 $appender->layout( Log::Log4perl::Layout::PatternLayout->new('%l') );
-$c = $app->GET('/foo');
+$c = get('/foo');
 log_like
-qr|^MockApp::Controller::Root::foo .*lib/MockApp/Controller/Root.pm \(18\)$|,
+qr|^MockApp::Controller::Root::foo .*lib/MockApp/Controller/Root.pm \(16\)$|,
   'Loggin location';
 
 # %M Method or function where the logging request was issued
 
 $appender->layout( Log::Log4perl::Layout::PatternLayout->new('%M') );
-$c = $app->GET('/foo');
+$c = get('/foo');
 log_ok( 'MockApp::Controller::Root::foo', 'Loggin method' );
 
 # %T A stack trace of functions called
@@ -87,5 +80,5 @@ log_ok( 'MockApp::Controller::Root::foo', 'Loggin method' );
 ## check another log message to ensure the closures work correctly
 
 $appender->layout( Log::Log4perl::Layout::PatternLayout->new('%L') );
-$c = $app->GET('/bar');
-log_ok( '24', 'Loggin another line number' );
+$c = get('/bar');
+log_ok( '22', 'Loggin another line number' );

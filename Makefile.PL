@@ -7,6 +7,7 @@ requires( 'Log::Log4perl'    => '0.49');
 requires( 'Params::Validate' => 0 );
 requires( 'Sub::Install'     => 0 );
 requires( 'Data::Dump' => 0 );
+requires( 'MRO::Compat' => 0 );
 
 auto_include;
 auto_install;

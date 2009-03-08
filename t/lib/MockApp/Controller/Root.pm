@@ -3,14 +3,12 @@ package MockApp::Controller::Root;
 use strict;
 use warnings;
 
-use base qw/Catalyst::Controller Class::Data::Inheritable/;
+use base qw/Catalyst::Controller/;
 
-__PACKAGE__->mk_classdata('context');
 __PACKAGE__->config->{namespace} = '';
 
 sub auto : Private {
     my ( $self, $c ) = @_;
-    $self->context($c);
 }
 
 sub foo : Local {

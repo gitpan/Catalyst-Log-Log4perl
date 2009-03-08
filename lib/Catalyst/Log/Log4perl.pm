@@ -69,7 +69,7 @@ use Log::Log4perl::Level;
 use Params::Validate;
 use Data::Dump;
 
-our $VERSION = '1.00';
+our $VERSION = '1.01';
 
 {
     my @levels = qw[ debug info warn error fatal ];
@@ -380,6 +380,7 @@ Andreas Marienborg, C<omega@palle.net>
 Gavin Henry, C<ghenry@suretecsystems.com> (Typos)
 Sebastian Willert (Overriding CSPECS)
 J. Shirley C<jshirley@gmail.com> (Adding _dump)
+Tomas Doran (t0m) C<bobtfish@bobtfish.net> (Current maintainer)
 
 =head1 LICENSE
 
