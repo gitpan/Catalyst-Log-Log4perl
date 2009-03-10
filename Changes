@@ -1,5 +1,8 @@
 Revision history for Catalyst::Log::Log4perl
 
+1.02 Tue Mar 10 12:56:06 GMT 2009
+  - Remove dependency on parent.pm from the new tests.
+
 1.01 Sun Mar  8 23:07:08 GMT 2009
   - Fix test suite to work correctly with Catalyst 5.8 (omega)
 

@@ -3,7 +3,7 @@ package MockApp;
 use strict;
 use warnings;
 
-use parent qw/Catalyst/;
+use base qw/Catalyst/;
 
 use Catalyst::Log::Log4perl;
 
