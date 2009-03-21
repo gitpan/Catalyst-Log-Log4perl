@@ -69,7 +69,7 @@ use Log::Log4perl::Level;
 use Params::Validate;
 use Data::Dump;
 
-our $VERSION = '1.02';
+our $VERSION = '1.03';
 
 {
     my @levels = qw[ debug info warn error fatal ];
@@ -213,6 +213,9 @@ Flushes the cache. Much like the way Catalyst::Log does it.
 
 sub _flush {
     my ($self) = @_;
+
+    local $SIG{CHLD} = 'DEFAULT'; # Some log backends spawn processes, and
+                                  # don't play nicely unless we do this.
 
     my @stack = @{ $self->{log4perl_stack} };
     $self->{log4perl_stack} = [];

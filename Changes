@@ -1,5 +1,9 @@
 Revision history for Catalyst::Log::Log4perl
 
+1.03 Sat Mar 21 20:52:20 GMT 2009
+  - Fix to work correctly with Log::Dispatch::Email::MailSend, which
+    is recommended in the documentation (Sebastian Willert)
+
 1.02 Tue Mar 10 12:56:06 GMT 2009
   - Remove dependency on parent.pm from the new tests.
 
