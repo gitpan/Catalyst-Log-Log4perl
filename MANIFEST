@@ -18,5 +18,8 @@ META.yml
 README
 t/01-compile.t
 t/10-basic.t
+t/20-test-log4perl.t
+t/21-test-log4perl-hotfix.t
+t/22-test-log4perl-hotfix-broken.t
 t/lib/MockApp.pm
 t/lib/MockApp/Controller/Root.pm

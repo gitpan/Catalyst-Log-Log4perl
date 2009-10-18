@@ -69,7 +69,7 @@ use Log::Log4perl::Level;
 use Params::Validate;
 use Data::Dump;
 
-our $VERSION = '1.03';
+our $VERSION = '1.04';
 
 {
     my @levels = qw[ debug info warn error fatal ];
@@ -376,14 +376,25 @@ but seems to work perfectly.
 
 L<Log::Log4perl>, L<Catalyst::Log>, L<Catalyst>.
 
-=head1 AUTHOR
+=head1 AUTHORS
 
 Adam Jacob, C<adam@stalecoffee.org>
+
 Andreas Marienborg, C<omega@palle.net>
+
 Gavin Henry, C<ghenry@suretecsystems.com> (Typos)
+
 Sebastian Willert (Overriding CSPECS)
+
 J. Shirley C<jshirley@gmail.com> (Adding _dump)
+
 Tomas Doran (t0m) C<bobtfish@bobtfish.net> (Current maintainer)
+
+=head1 COPYRIGHT
+
+Copyright (c) 2005 - 2009
+the Catalyst::Log::Log4perl L</AUTHORS>
+as listed above.
 
 =head1 LICENSE
 

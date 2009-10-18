@@ -1,5 +1,11 @@
 Revision history for Catalyst::Log::Log4perl
 
+1.04 Sun Oct 18 19:00:00 BST 2009
+  - Fixup copyright info
+  - Add tests using Test::Log4perl contributed by Sebastian Willert
+  - Correct dependency on Log4Perl (RT#41622)
+  - Remove unused dependency (RT#27361)
+
 1.03 Sat Mar 21 20:52:20 GMT 2009
   - Fix to work correctly with Log::Dispatch::Email::MailSend, which
     is recommended in the documentation (Sebastian Willert)

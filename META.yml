@@ -2,8 +2,12 @@
 abstract: 'Log::Log4perl logging for Catalyst'
 author:
   - 'Adam Jacob, C<adam@stalecoffee.org>'
+build_requires:
+  ExtUtils::MakeMaker: 6.42
+configure_requires:
+  ExtUtils::MakeMaker: 6.42
 distribution_type: module
-generated_by: 'Module::Install version 0.80'
+generated_by: 'Module::Install version 0.91'
 license: perl
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
@@ -16,10 +20,10 @@ no_index:
 requires:
   Catalyst: 5.60
   Data::Dump: 0
-  Log::Log4perl: 0.49
+  Log::Log4perl: 1.04
   MRO::Compat: 0
   Params::Validate: 0
-  Sub::Install: 0
 resources:
   license: http://dev.perl.org/licenses/
-version: 1.03
+  repository: http://dev.catalyst.perl.org/repos/Catalyst/trunk/Catalyst-Log-Log4perl/
+version: 1.04
