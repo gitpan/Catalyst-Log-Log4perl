@@ -1,5 +1,8 @@
 Revision history for Catalyst::Log::Log4perl
 
+1.05 Tue Oct 27 19:08:00 BST 2011
+  - DEPRECATED in favor of Log::Log4perl::Catalyst
+
 1.04 Sun Oct 18 19:00:00 BST 2009
   - Fixup copyright info
   - Add tests using Test::Log4perl contributed by Sebastian Willert

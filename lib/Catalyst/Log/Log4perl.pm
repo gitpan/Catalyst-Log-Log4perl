@@ -2,7 +2,7 @@ package Catalyst::Log::Log4perl;
 
 =head1 NAME
 
-Catalyst::Log::Log4perl - Log::Log4perl logging for Catalyst
+Catalyst::Log::Log4perl - DEPRECATED (see Log::Log4perl::Catalyst)
 
 =head1 SYNOPSIS
 
@@ -11,7 +11,7 @@ In MyApp.pm:
     use Catalyst::Log::Log4perl;
 
   # then we create a custom logger object for catalyst to use.
-  # If we dont supply any arguments to new, it will work almost
+  # If we don't supply any arguments to new, it will work almost
   # like the default catalyst-logger.
   
     __PACKAGE__->log(Catalyst::Log::Log4perl->new());
@@ -68,8 +68,13 @@ use Log::Log4perl::Layout;
 use Log::Log4perl::Level;
 use Params::Validate;
 use Data::Dump;
+use Carp 'carp';
 
-our $VERSION = '1.04';
+our $VERSION = '1.05';
+
+BEGIN {
+    carp 'Catalyst::Log::Log4perl is DEPRECATED, update your app to use Log::Log4perl::Catalyst';
+}
 
 {
     my @levels = qw[ debug info warn error fatal ];
@@ -360,7 +365,7 @@ and L<Catalyst::Log> all cspecs of L<Log::Log4perl::Layout::PatternLayout>
 that rely on call stack information fail to work as expected. Affected
 are the format strings %L, %F, %C, %M, %l and %T. You can instruct
 B<Catalyst::Log::Log4perl> to try to hijack these patterns which seems to
-work reasonable well, but be adviced that this feature is HIGHLY EXPERIMENTAL
+work reasonable well, but be advised that this feature is HIGHLY EXPERIMENTAL
 and relies on a few internals of L<Log::Log4perl> that might change in later
 versions of this library. Additionally, this feature is currently only tested
 with L<Log::Log4perl> version 1.08 allthough the underlying internals of
@@ -389,6 +394,8 @@ Sebastian Willert (Overriding CSPECS)
 J. Shirley C<jshirley@gmail.com> (Adding _dump)
 
 Tomas Doran (t0m) C<bobtfish@bobtfish.net> (Current maintainer)
+
+Wallace Reis (wreis) C<wreis@cpan.org>
 
 =head1 COPYRIGHT
 

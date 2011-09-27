@@ -1,5 +1,5 @@
 ---
-abstract: 'Log::Log4perl logging for Catalyst'
+abstract: 'DEPRECATED (see Log::Log4perl::Catalyst)'
 author:
   - 'Adam Jacob, C<adam@stalecoffee.org>'
 build_requires:
@@ -7,7 +7,7 @@ build_requires:
 configure_requires:
   ExtUtils::MakeMaker: 6.42
 distribution_type: module
-generated_by: 'Module::Install version 0.91'
+generated_by: 'Module::Install version 1.01'
 license: perl
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
@@ -25,5 +25,5 @@ requires:
   Params::Validate: 0
 resources:
   license: http://dev.perl.org/licenses/
-  repository: http://dev.catalyst.perl.org/repos/Catalyst/trunk/Catalyst-Log-Log4perl/
-version: 1.04
+  repository: http://dev.catalyst.perl.org/repos/Catalyst/trunk/historical/Catalyst-Log-Log4perl
+version: 1.05

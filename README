@@ -1,13 +1,22 @@
 NAME
-    Catalyst::Log::Log4perl - Log::Log4perl logging for Catalyst
+    Catalyst::Log::Log4perl - DEPRECATED (see Log::Log4perl::Catalyst)
 
 SYNOPSIS
     In MyApp.pm:
 
         use Catalyst::Log::Log4perl;
-        MyApp->log(
-            Catalyst::Log:Log4perl->new("log4perl.conf")
-        );
+
+      # then we create a custom logger object for catalyst to use.
+      # If we don't supply any arguments to new, it will work almost
+      # like the default catalyst-logger.
+  
+        __PACKAGE__->log(Catalyst::Log::Log4perl->new());
+
+      # But the real power of Log4perl lies in the configuration, so
+      # lets try that. example.conf is included in the distribution,
+      # alongside the README and Changes.
+  
+      __PACKAGE__->log(Catalyst::Log::Log4perl->new('example.conf'));
 
     And later...
 
@@ -43,14 +52,31 @@ DESCRIPTION
     logging mechanisms based on the component.
 
 METHODS
-    new($config)
+    new($config, [%options])
         This builds a new Catalyst::Log::Log4perl object. If you provide an
         argument to new(), it will be passed directly to
         Log::Log4perl::init.
 
-        Without any arguments, it will initialize a root logger with a singe
-        appender, Log::Log4perl::Appender::Screen, configured to have an
-        identical layout to the default Catalyst::Log object.
+        The second (optional) parameter is a hash with extra options.
+        Currently three additional parameters are defined:
+
+          'autoflush'   - Set it to a true value to disable abort(1) support.
+          'watch_delay' - Set it to a true value to use L<Log::Log4perl>'s init_and_watch
+
+          'override_cspecs' - EXPERIMENTAL
+              Set it to a true value to locally override some parts of
+              L<Log::Log4perl::Layout::PatternLayout>. See L<OVERRIDING CSPECS> below
+
+        Without any arguments, new() will initialize a root logger with a
+        single appender, Log::Log4perl::Appender::Screen, configured to have
+        an identical layout to the default Catalyst::Log object.
+
+    _flush()
+        Flushes the cache. Much like the way Catalyst::Log does it.
+
+    abort($abort)
+        Causes the current log-object to not log anything, effectivly
+        shutting up this request, making it disapear from the logs.
 
     debug($message)
         Passes it's arguments to $logger->debug.
@@ -94,13 +120,47 @@ METHODS
         This method does nothing but return "0". You should use
         Log::Log4perl's built in mechanisms for disabling log levels.
 
-SEE ALSO
-        Log::Log4perl, Catalyst::Log, Catalyst.
+OVERRIDING CSPECS
+    Due to some fundamental design incompatibilities of Log::Log4perl and
+    Catalyst::Log all cspecs of Log::Log4perl::Layout::PatternLayout that
+    rely on call stack information fail to work as expected. Affected are
+    the format strings %L, %F, %C, %M, %l and %T. You can instruct
+    Catalyst::Log::Log4perl to try to hijack these patterns which seems to
+    work reasonable well, but be advised that this feature is HIGHLY
+    EXPERIMENTAL and relies on a few internals of Log::Log4perl that might
+    change in later versions of this library. Additionally, this feature is
+    currently only tested with Log::Log4perl version 1.08 allthough the
+    underlying internals of Log::Log4perl seem to be stable since at least
+    version 0.47.
 
-AUTHOR
-        Adam Jacob, "adam@stalecoffee.org"
+BUGS AND LIMITATIONS
+    The %T cspec of Log::Log4perl::Layout::PatternLayout is currently
+    unimplemented. The implementation to get %M defies any logical approach
+    but seems to work perfectly.
+
+SEE ALSO
+    Log::Log4perl, Catalyst::Log, Catalyst.
+
+AUTHORS
+    Adam Jacob, "adam@stalecoffee.org"
+
+    Andreas Marienborg, "omega@palle.net"
+
+    Gavin Henry, "ghenry@suretecsystems.com" (Typos)
+
+    Sebastian Willert (Overriding CSPECS)
+
+    J. Shirley "jshirley@gmail.com" (Adding _dump)
+
+    Tomas Doran (t0m) "bobtfish@bobtfish.net" (Current maintainer)
+
+    Wallace Reis (wreis) "wreis@cpan.org"
+
+COPYRIGHT
+    Copyright (c) 2005 - 2009 the Catalyst::Log::Log4perl "AUTHORS" as
+    listed above.
 
 LICENSE
-        This library is free software. You can redistribute it and/or modify
-        it under the same terms as perl itself.
+    This library is free software. You can redistribute it and/or modify it
+    under the same terms as perl itself.
 
