@@ -14,7 +14,5 @@ requires( 'MRO::Compat' => 0 );
 
 test_requires 'Test::More';
 
-auto_include;
-auto_install;
-
 WriteAll;
+

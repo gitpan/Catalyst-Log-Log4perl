@@ -70,7 +70,7 @@ use Params::Validate;
 use Data::Dump;
 use Carp 'carp';
 
-our $VERSION = '1.05';
+our $VERSION = '1.06';
 
 BEGIN {
     carp 'Catalyst::Log::Log4perl is DEPRECATED, update your app to use Log::Log4perl::Catalyst';
